@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ส่งผลงานการประยุกต์ใช้ AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4">
+  <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-xl border border-emerald-100 overflow-hidden">
+    
+    <!-- Header โทนเขียว-ขาว -->
+    <div class="bg-emerald-700 text-white p-6 sm:p-8 text-center relative">
+      <div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-full mb-3 text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-wide">แบบฟอร์มส่งผลงาน</h1>
+      <p class="text-emerald-100 text-sm mt-1">การประยุกต์ใช้ AI ในการปฏิบัติงาน</p>
+    </div>
+
+    <!-- ข้อความหมายเหตุวุฒิบัตร -->
+    <div class="p-6 sm:p-8 pb-0">
+      <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
+        <p class="text-xs sm:text-sm text-emerald-900 font-medium leading-relaxed">
+          📌 <strong>หมายเหตุ:</strong> ผู้เข้าร่วมจะได้รับวุฒิบัตรอิเล็กทรอนิกส์ (E-Certificate) ลงนามโดยท่านอธิการบดี หลังจากส่งผลงานกลับมาเรียบร้อยแล้วค่ะ
+        </p>
+      </div>
+    </div>
+
+    <!-- ฟอร์มกรอกข้อมูล -->
+    <form id="submissionForm" class="p-6 sm:p-8 space-y-5" onsubmit="submitForm(event)">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อ-สกุล <span class="text-red-500">*</span></label>
+        <input type="text" id="fullName" required placeholder="นาย/นาง/นางสาว สมัคร ใจดี" 
+          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">หน่วยงาน <span class="text-red-500">*</span></label>
+        <input type="text" id="department" required placeholder="ระบุสังกัด / ภาควิชา / ส่วนงาน" 
+          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">สิ่งที่เรียนรู้จากการอบรม ได้นำมาประยุกต์ใช้ในงานอะไร <span class="text-red-500">*</span></label>
+        <textarea id="learningApplication" rows="4" required placeholder="อธิบายรายละเอียดการนำความรู้ไปประยุกต์ใช้ในงานของท่าน..." 
+          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm transition"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">ผลลัพธ์ชิ้นงาน (เอกสารไม่เกิน 1 หน้า A4) <span class="text-red-500">*</span></label>
+        <span class="block text-xs text-slate-500 mb-2">ภาพผลงาน ก่อน–หลัง หรือภาพหน้าจอประกอบคำอธิบาย (รองรับ PDF, JPG, PNG ขนาดไม่เกิน 25MB)</span>
+        <input type="file" id="resultFile" accept=".pdf,image/*" required 
+          class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer border border-slate-200 rounded-lg p-1">
+      </div>
+
+      <button type="submit" id="submitBtn" 
+        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg shadow transition flex items-center justify-center space-x-2">
+        <span>ส่งผลงาน</span>
+      </button>
+
+      <!-- ข้อความแสดงผลลัพธ์ -->
+      <div id="statusMessage" class="hidden text-center text-sm font-medium p-3 rounded-lg"></div>
+    </form>
+  </div>
+
+  <script>
+    // 🔴 ใส่ Web App URL ที่ได้จาก Google Apps Script ที่นี่
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxRt9rI1bR6CjlstDjiJilzFemDx9OlNwPNLJ1MtKLabc72B9o9DfcbXyCCwwgaHKV/execE';
+
+    async function submitForm(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('statusMessage');
+      const fileInput = document.getElementById('resultFile');
+
+      btn.disabled = true;
+      btn.innerText = "กำลังอัปโหลดและส่งข้อมูล...";
+      status.classList.add('hidden');
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function(event) {
+        const base64Data = event.target.result.split(',')[1];
+        const payload = {
+          fullName: document.getElementById('fullName').value,
+          department: document.getElementById('department').value,
+          learningApplication: document.getElementById('learningApplication').value,
+          fileName: file.name,
+          fileType: file.type,
+          fileData: base64Data
+        };
+
+        try {
+          // ใช้ mode: 'no-cors' เพื่อเลี่ยงข้อจำกัด CORS ของ Google Apps Script Redirect
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // เนื่องจาก mode: 'no-cors' จะไม่สามารถอ่าน response body ได้โดยตรง
+          // เมื่อ fetch เสร็จสมบูรณ์โดยไม่ตก catch แปลว่าคำขอถูกส่งไปยัง Apps Script แล้ว
+          btn.disabled = false;
+          btn.innerText = "ส่งผลงาน";
+          status.textContent = "✅ บันทึกข้อมูลและส่งผลงานเรียบร้อยแล้ว ขอบคุณค่ะ";
+          status.className = "text-center text-sm font-medium p-3 rounded-lg bg-emerald-100 text-emerald-800";
+          document.getElementById('submissionForm').reset();
+
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerText = "ส่งผลงาน";
+          status.textContent = "❌ ระบบขัดข้อง: " + err.message;
+          status.className = "text-center text-sm font-medium p-3 rounded-lg bg-red-100 text-red-800";
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
