@@ -16,6 +16,7 @@
 
   <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-xl border border-emerald-100 overflow-hidden">
     
+    <!-- ส่วนหัว Header -->
     <div class="bg-emerald-700 text-white p-6 sm:p-8 text-center relative">
       <div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-full mb-3 text-white">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +27,8 @@
       <p class="text-emerald-100 text-sm mt-1">การประยุกต์ใช้ AI ในการปฏิบัติงาน</p>
     </div>
 
-    <div class="p-6 sm:p-8 pb-0">
+    <!-- ส่วนหมายเหตุ (จะถูกซ่อนเมื่อส่งสำเร็จ) -->
+    <div id="noteBox" class="p-6 sm:p-8 pb-0">
       <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
         <p class="text-xs sm:text-sm text-emerald-900 font-medium leading-relaxed">
           📌 <strong>หมายเหตุ:</strong> ผู้เข้าร่วมจะได้รับวุฒิบัตรอิเล็กทรอนิกส์ (E-Certificate) ลงนามโดยท่านอธิการบดี หลังจากส่งผลงานกลับมาเรียบร้อยแล้วค่ะ
@@ -34,6 +36,7 @@
       </div>
     </div>
 
+    <!-- ฟอร์มกรอกข้อมูล (จะถูกซ่อนเมื่อส่งสำเร็จ) -->
     <form id="submissionForm" class="p-6 sm:p-8 space-y-5" onsubmit="handleFormSubmit(event)">
       
       <div>
@@ -66,12 +69,31 @@
         <span>ส่งผลงาน</span>
       </button>
 
+      <!-- ข้อความแสดงกรณีเกิด Error หรือกำลังโหลด -->
       <div id="statusMessage" class="hidden text-center text-sm font-medium p-3 rounded-lg"></div>
     </form>
+
+    <!-- ส่วนที่จะแสดงขึ้นมาแทนช่องกรอกข้อมูลเมื่อบันทึกสำเร็จ -->
+    <div id="successBox" class="hidden p-8 text-center space-y-4">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-semibold text-emerald-800">✅ บันทึกข้อมูลและส่งผลงานเรียบร้อยแล้ว ขอบคุณค่ะ</h2>
+      <p class="text-sm text-slate-600">ระบบได้ทำการบันทึกข้อมูลและจัดเก็บไฟล์ผลงานของท่านเรียบร้อยแล้ว</p>
+      
+      <div class="pt-4">
+        <button type="button" onclick="resetFormToNewSubmission()" 
+          class="text-xs text-emerald-700 hover:text-emerald-800 underline font-medium">
+          + ต้องการส่งผลงานอื่นเพิ่มเติม
+        </button>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // 🔴 นำ Web App URL (ลงท้ายด้วย /exec) จาก Google Apps Script มาวางตรงนี้
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDYLwJayqgXhQndB0qUNtNRwVcv-cj0i827jWdUN3uPrlxIR93kxwF5DyD8IJC0VhA/exec';
 
     async function handleFormSubmit(e) {
@@ -80,6 +102,11 @@
       const status = document.getElementById('statusMessage');
       const fileInput = document.getElementById('resultFile');
       const file = fileInput.files[0];
+
+      if (!file) {
+        alert('กรุณาเลือกไฟล์ก่อนกดส่งผลงาน');
+        return;
+      }
 
       // ตรวจสอบขนาดไฟล์ไม่เกิน 15MB
       if (file.size > 15 * 1024 * 1024) {
@@ -100,11 +127,11 @@
             department: document.getElementById('department').value,
             learningApplication: document.getElementById('learningApplication').value,
             fileName: file.name,
-            fileType: file.type,
+            fileType: file.type || 'application/octet-stream',
             fileData: base64Data
           };
 
-          // ส่งคำขอแบบ Text/Plain เพื่อหลีกเลี่ยงปัญหา CORS
+          // ส่งคำขอไปยัง Google Apps Script
           await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -114,12 +141,15 @@
             }
           });
 
+          // เมื่อสำเร็จ: ซ่อนฟอร์มและหมายเหตุ แล้วแสดงกล่องสำเร็จแทน
+          document.getElementById('noteBox').classList.add('hidden');
+          document.getElementById('submissionForm').classList.add('hidden');
+          document.getElementById('successBox').classList.remove('hidden');
+
+          // ล้างข้อมูลในฟอร์มเตรียมไว้
+          document.getElementById('submissionForm').reset();
           btn.disabled = false;
           btn.innerText = "ส่งผลงาน";
-          status.textContent = "✅ บันทึกข้อมูลและส่งผลงานเรียบร้อยแล้ว ขอบคุณค่ะ";
-          status.className = "text-center text-sm font-medium p-3 rounded-lg bg-emerald-100 text-emerald-800";
-          status.classList.remove('hidden');
-          document.getElementById('submissionForm').reset();
 
         } catch (err) {
           btn.disabled = false;
@@ -131,6 +161,14 @@
       };
 
       reader.readAsDataURL(file);
+    }
+
+    // ฟังก์ชันกรณีผู้ใช้ต้องการส่งใหม่อีกครั้ง
+    function resetFormToNewSubmission() {
+      document.getElementById('successBox').classList.add('hidden');
+      document.getElementById('noteBox').classList.remove('hidden');
+      document.getElementById('submissionForm').classList.remove('hidden');
+      document.getElementById('statusMessage').classList.add('hidden');
     }
   </script>
 </body>
